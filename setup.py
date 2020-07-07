@@ -3,12 +3,16 @@ from setuptools import setup, find_packages
 with open("README.md", "r") as readme_file:
     readme = readme_file.read()
 
-with open("requirements.txt", "r") as requirements_file:
-    requirements = [dep.strip() for dep in requirements_file.readlines() if dep.strip()]
+requirements = [
+    'mahotas',
+    'matplotlib',
+    'numpy',
+    'scikit-learn'
+]
 
 setup(
     name="segutils",
-    version="0.0.1",
+    version="0.0.2",
     author="Guy Azran",
     author_email="guyazran@gmail.com",
     description="Common utilities for image processing, segmentation, and detection",
