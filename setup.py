@@ -8,7 +8,7 @@ with open("requirements.txt", "r") as requirements_file:
 
 setup(
     name="segutils",
-    version="0.0.0",
+    version="0.0.1",
     author="Guy Azran",
     author_email="guyazran@gmail.com",
     description="Common utilities for image processing, segmentation, and detection",
