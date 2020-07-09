@@ -152,7 +152,7 @@ def mask_out(image, mask):
 
     # copy image so as not to
     out = image.copy()
-    out[~mask] = 0
+    out[~mask.astype(bool)] = 0
     return out
 
 

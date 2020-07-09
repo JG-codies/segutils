@@ -12,7 +12,7 @@ requirements = [
 
 setup(
     name="segutils",
-    version="0.0.2",
+    version="0.0.3",
     author="Guy Azran",
     author_email="guyazran@gmail.com",
     description="Common utilities for image processing, segmentation, and detection",
