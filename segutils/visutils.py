@@ -1,7 +1,74 @@
+import colorsys as __colorsys
+import random as __random
+
 import matplotlib.pyplot as __plt
 import numpy as __np
 
-from .imutils import make_image_binary as __bin_img, is_rgb_image as __is_rgb
+from .imutils import (make_image_binary as __bin_img,
+                      is_rgb_image as __is_rgb,
+                      convert_16_bit_to_8_bit as __to_8bit,
+                      get_mask_labels as __get_labels)
+
+
+def generate_rgb_colors(num_colors_to_generate, bright=True, shuffle=True):
+    """
+    generates a list of RGB colors that are as different as possible.
+    in order to not assume the number of bits used, the returned RGB values are between 0 and 1, and can be converted
+    to 8bit (for example) by multiplying each value by 255
+    :param num_colors_to_generate: the number of colors to generate.
+    :param bright: determines if to use bright or dark colors.
+    :param shuffle: if True, shuffles the colors randomly before outputting.
+    :return: a list of tuples (r, g, b) representing the RGB value of each color. values are between 0 and 1.
+    """
+    # choose brightness
+    brightness = 1.0 if bright else 0.7
+
+    # create HSV triplets (easier to generate with big difference between colors)
+    hsv = [(i / num_colors_to_generate, 1, brightness) for i in range(num_colors_to_generate)]
+
+    # convert to rgb
+    colors = list(map(lambda c: __colorsys.hsv_to_rgb(*c), hsv))
+
+    # shuffle if necessary
+    if shuffle:
+        __random.shuffle(colors)
+
+    return colors
+
+
+def apply_mask(image, mask, color=None, alpha=0.5):
+    """
+    apply a mask to a given image
+    :param image: an RGB image in "channels last" format to apply the mask to.
+    :param mask: a binary or labeled mask: a 2D numpy array of positive integers (objects) and 0's (background).
+    :param color: a tuple (r, g, b) representing a color in RGB format. if not provided, a random color is generated.
+    :param alpha: the opacity of the overlain mask.
+    :return: the same as the input image, but with an overlay of the given mask and color.
+    """
+    # make sure this is a 3 channeled image (RGB format expected)
+    image = __to_8bit(image.copy())  # assert image is 8bit
+    if image.ndim == 2:  # handle 2D image
+        image = __np.stack([image, image, image], axis=-1)
+    elif image.ndim != 3:  # assert image with channels
+        raise ValueError('input must be a single image')
+    elif image.shape[-1] == 1:  # handle single cahnnel grayscale
+        image = __np.dstack([image, image, image])
+    elif image.shape[-1] != 3:  # assert 3 channels (RGB)
+        raise ValueError('only support grayscale and RGB images')
+
+    labels = __get_labels(mask.astype(int))
+    if color is None:  # generate 1 color for each label
+        color = generate_rgb_colors(len(labels))
+    elif len(color) == 3 and isinstance(color[0], int):  # handle single color
+        color = [color] * len(labels)
+
+    for l, c in zip(labels, color):  # iterate labels and matching colors
+        for channel in range(3):  # iterate each channel to update with mask color
+            image[:, :, channel] = __np.where(mask == l,
+                                              image[:, :, channel] * (1 - alpha) + alpha * c[channel] * 255,
+                                              image[:, :, channel])
+
+    return image
 
 
 def visual_mask_to_prediction_comparison(image, ground_truth_mask, probability_map, threshold, axes=None):

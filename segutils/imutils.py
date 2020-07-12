@@ -1,5 +1,3 @@
-import colorsys as __colorsys
-import random as __random
 from math import ceil as __ceil
 
 import mahotas as __mh
@@ -154,61 +152,6 @@ def mask_out(image, mask):
     out = image.copy()
     out[~mask.astype(bool)] = 0
     return out
-
-
-def generate_rgb_colors(num_colors_to_generate, bright=True, shuffle=False):
-    """
-    generates a list of RGB colors that are as different as possible.
-    in order to not assume the number of bits used, the returned RGB values are between 0 and 1, and can be converted
-    to 8bit (for example) by multiplying each value by 255
-    :param num_colors_to_generate: the number of colors to generate.
-    :param bright: determines if to use bright or dark colors.
-    :param shuffle: if True, shuffles the colors randomly before outputting.
-    :return: a list of tuples (r, g, b) representing the RGB value of each color. values are between 0 and 1.
-    """
-    # choose brightness
-    brightness = 1.0 if bright else 0.7
-
-    # create HSV triplets (easier to generate with big difference between colors)
-    hsv = [(i / num_colors_to_generate, 1, brightness) for i in range(num_colors_to_generate)]
-
-    # convert to rgb
-    colors = list(map(lambda c: __colorsys.hsv_to_rgb(*c), hsv))
-
-    # shuffle if necessary
-    if shuffle:
-        __random.shuffle(colors)
-
-    return colors
-
-
-def apply_mask(image, mask, color=None, alpha=0.5):
-    """
-    apply a mask to a given image
-    :param image: an RGB image in "channels last" format to apply the mask to.
-    :param mask: a binary mask: a 2D numpy array of 1's (objects) and 0's (background).
-    :param color: a tuple (r, g, b) representing a color in RGB format. if not provided, a random color is generated.
-    :param alpha: the opacity of the overlain mask.
-    :return: the same as the input image, but with an overlay of the given mask and color.
-    """
-    if color is None:
-        color = generate_rgb_colors(1)[0]
-
-    image = convert_16_bit_to_8_bit(image.copy())  # assert image is 8bit
-    if image.ndim == 2:
-        image = __np.stack([image, image, image], axis=-1)
-    elif image.ndim != 3:
-        raise ValueError('input must be an image')
-    elif image.shape[-1] == 1:
-        image = __np.dstack([image, image, image])
-    elif image.shape[-1] != 3:
-        raise ValueError('only support grayscale and RGB images')
-
-    for c in range(3):
-        image[:, :, c] = __np.where(mask != 0,
-                                    image[:, :, c] * (1 - alpha) + alpha * color[c] * 255,
-                                    image[:, :, c])
-    return image
 
 
 def convert_16_bit_to_8_bit(image):
