@@ -31,8 +31,8 @@ requirements = [
 setup(
     name="segutils",
     version=get_version(os.path.join('segutils', '__init__.py')),
-    author="Guy Azran",
-    author_email="guyazran@gmail.com",
+    author="Guy Azran, Jonathan Reiner",
+    author_email="guyazran@gmail.com, yonireiner@gmail.com",
     description="Common utilities for image processing, segmentation, and detection",
     long_description=readme,
     long_description_content_type="text/markdown",
